@@ -1,0 +1,19 @@
+{
+    "name": "razor-xmd-lite",
+    "version": "1.0.0",
+    "description": "A modular WhatsApp MD bot powered by Baileys",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "keywords": ["whatsapp", "bot", "baileys", "md", "razor-xmd"],
+    "author": "Sparms Tech 🪀",
+    "license": "MIT",
+    "type": "commonjs",
+    "dependencies": {
+        "@whiskeysockets/baileys": "^6.5.0",
+        "axios": "^1.6.0",
+        "ytdl-core": "^4.11.1",
+        "cheerio": "^1.0.0-rc.12"
+    }
+}

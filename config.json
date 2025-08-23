@@ -1,0 +1,14 @@
+{
+  "ownerNumber": ["263783439748", "263778833124"],
+  "botName": "𓆩 𝗥𝗔𝗭𝗢𝗥 𝗫𝗠𝗗 𝗟𝗜𝗧𝗘 𓆪",
+  "prefix": ".",
+  "owner": ["Denzel", "Sparks Tech"],
+  "alwaysOnline": true,
+  "autoread": false,
+  "autostatusview": true,
+  "autobio": true,
+  "autoreactstatus": true,
+  "autorecord": true,
+  "welcome": true,
+  "mode": "public",
+}
