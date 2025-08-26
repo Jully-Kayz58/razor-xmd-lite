@@ -27,11 +27,11 @@
 │ •.video             → Download YouTube video
 │ •.tiktok            → Download TikTok (no watermark)
 │ •.fb                → Download Facebook video
-│ •.img               → Search image (no API key)
+│ •.img               → Search image 
 ╰────────────────────╯
 
 ╭─✧ Bot Controls ✧─╮
-│ •.prefix            → Change prefix (owner only)
+│ •.prefix            → Change prefix 
 │ •.mode              → Toggle public/private
 │ •.alwaysonline on/off
 │ •.autoread on/off
@@ -39,7 +39,7 @@
 │ •.autoreactstatus on/off
 │ •.autostatusview on/off
 │ •.autorecord on/off
-│ •.block             → Block user (owner only)
+│ •.block             → Block user 
 ╰────────────────────╯
 
 ╭─✧ Group Features ✧─╮
@@ -108,7 +108,7 @@ razor-xmd-lite/
 - Built with [Baileys MD](https://github.com/WhiskeySockets/Baileys)
 - Inspired by Razor XMD and Malvin Tech 🪀
 - Newsletter Channel:
-  [https://whatsapp.com/channel/0029VbB5sclIHphQM2cOFE2P](https://whatsapp.com/channel/0029VbB5sclIHphQM2cOFE2P)
+  [Whatsapp Channel](https://whatsapp.com/channel/0029VbB5sclIHphQM2cOFE2P)
 
 ---
 
@@ -116,11 +116,3 @@ razor-xmd-lite/
 
 Feel free to fork, star, and contribute!
 For issues or feature requests, open a GitHub issue or reach out via the WhatsApp channel.
-
----
-
-## 🧠 Tips
-
-- Replace image URLs (`your-banner-image.jpg`, etc.) with your actual hosted images (e.g. from Imgur or GitHub CDN)
-- You can embed GIFs, demo videos, or even badges for CI/CD, coverage, etc.
-- Want a dark mode version or multilingual README? I can help you build that too
