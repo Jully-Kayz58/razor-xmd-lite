@@ -80,7 +80,7 @@ rl.question(
             }
 
             // 🔍 Command execution
-            const commandPath = path.join(__dirname, "plugins", `${cmd}.js`);
+            const commandPath = path.join(__dirname, "commands", `${cmd}.js`);
             if (fs.existsSync(commandPath)) {
                 const command = require(commandPath);
                 await command.execute(razor, msg, args);
