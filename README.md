@@ -8,8 +8,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/yourusername/razor-xmd-lite?style=for-the-badge" />
-  <img src="https://img.shields.io/github/forks/yourusername/razor-xmd-lite?style=for-the-badge" />
+  <img src="https://img.shields.io/github/stars/Jully-Kayz58/razor-xmd-lite?style=for-the-badge" />
+  <img src="https://img.shields.io/github/forks/Jully-Kayz58/razor-xmd-lite?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
 </p>
@@ -54,7 +54,7 @@
 ### 🔧 Installation
 
 ```bash
-git clone https://github.com/yourusername/razor-xmd-lite.git
+git clone https://github.com/Jully-Kayz58/razor-xmd-lite.git
 cd razor-xmd-lite
 npm install
 ```
