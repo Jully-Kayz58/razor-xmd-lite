@@ -1,141 +1,129 @@
 const {
-    default: makeWArazoret,
+    default: makeWASocket,
     useMultiFileAuthState,
     fetchLatestBaileysVersion,
-    makeCacheableSignalKeyStore
+    makeCacheableSignalKeyStore,
+    requestPairingCode
 } = require("@whiskeysockets/baileys");
+
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { getConfig, updateConfig } = require("./utils/config");
-const { isAllowed } = require("./utils/roles");
-const { autoUpdate } = require("./utils/updater");
+const { getConfig, updateConfig} = require("./utils/config");
+const { isAllowed} = require("./utils/roles");
+const { autoUpdate} = require("./utils/updater");
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-rl.question(
-    "📱 Enter your phone number (with country code): ",
-    async number => {
-        const config = getConfig();
-        config.ownerNumber = number;
-        updateConfig(config);
-        rl.close();
+rl.question("📱 Enter your phone number (with country code): ", async number => {
+    rl.close();
 
-        const { state, saveCreds } = await useMultiFileAuthState("auth");
-        const { version } = await fetchLatestBaileysVersion();
+    const config = getConfig();
+    config.ownerNumber = number;
+    updateConfig(config);
 
-        const razor = makeWArazoret({
-            version,
-            auth: state,
-            printQRInTerminal: false,
-            browser: ["Razor XMD Lite", "Chrome", "1.0.0"]
-        });
+    const { state, saveCreds} = await useMultiFileAuthState("auth");
+    const { version} = await fetchLatestBaileysVersion();
 
-        // 🔗 Pairing code login
-        razor.ev.on("connection.update", async update => {
-            const { connection, pairingCode, isNewLogin } = update;
-            if (pairingCode && isNewLogin) {
-                console.log(`🔗 Pairing Code: ${pairingCode}`);
-                console.log("📲 WhatsApp> Linked Devices> Enter Code");
-            }
-            if (connection === "open") console.log("✅ Razor XMD Connected");
-        });
+    const socket = makeWASocket({
+        version,
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys)
+},
+        printQRInTerminal: false,
+        browser: ["Razor XMD Lite", "Chrome", "1.0.0"]
+});
 
-        // 🧠 Message handler
-        razor.ev.on("messages.upsert", async ({ messages }) => {
-            const msg = messages[0];
-            if (!msg.message || msg.key.fromMe) return;
+    // 🔗 Pairing code login
+    const pairingCode = await requestPairingCode(socket, number);
+    console.log(`🔗 Pairing Code: ${pairingCode}`);
+    console.log("📲 WhatsApp> Linked Devices> Enter Code");
 
-            const config = getConfig();
-            const text =
-                msg.message.conversation ||
-                msg.message.extendedTextMessage?.text ||
-                "";
-            const [cmdRaw, ...args] = text.trim().split(" ");
-            const cmd = cmdRaw.replace(config.prefix, "").toLowerCase();
+    socket.ev.on("connection.update", update => {
+        const { connection} = update;
+        if (connection === "open") {
+            console.log("✅ Razor XMD Connected");
+}
+});
 
-            // 🔒 Mode enforcement
-            if (!isAllowed(msg)) {
-                return;
-            }
+    socket.ev.on("messages.upsert", async ({ messages}) => {
+        const msg = messages[0];
+        if (!msg.message || msg.key.fromMe) return;
 
-            // 📖 Autoread
-            if (config.autoread) {
-                await razor.readMessages([msg.key]);
-            }
+        const text =
+            msg.message.conversation ||
+            msg.message.extendedTextMessage?.text ||
+            "";
+        const [cmdRaw,...args] = text.trim().split(" ");
+        const cmd = cmdRaw.replace(config.prefix, "").toLowerCase();
 
-            // 🎙️ Autorecord presence
-            if (config.autorecord) {
-                await razor.sendPresenceUpdate("recording", msg.key.remoteJid);
-            }
+        if (!isAllowed(msg)) return;
 
-            // 📝 Autobio
-            if (config.autobio) {
-                await razor.updateProfileStatus(
-                    `🤖 Razor XMD Lite active as of ${new Date().toLocaleString()}`
-                );
-            }
+        if (config.autoread) {
+            await socket.readMessages([msg.key]);
+}
 
-            // 🔍 Command execution
-            const commandPath = path.join(__dirname, "commands", `${cmd}.js`);
-            if (fs.existsSync(commandPath)) {
-                const command = require(commandPath);
-                await command.execute(razor, msg, args);
-            }
-        });
+        if (config.autorecord) {
+            await socket.sendPresenceUpdate("recording", msg.key.remoteJid);
+}
 
-        // 👋 Welcome messages
-        razor.ev.on("group-participants.update", async update => {
-            const config = getConfig();
-            const { id, participants, action } = update;
-
-            if (action === "add" && config.welcome) {
-                for (const participant of participants) {
-                    await razor.sendMessage(id, {
-                        text: `👋 Welcome @${
-                            participant.split("@")[0]
-                        } to the group! \n > Powered By *Razor XMD Lite*`,
-                        mentions: [participant]
-                    });
-                }
-            }
-        });
-
-        // 👀 Autostatus view + react
-        if (getConfig().autostatusview) {
-            razor.ev.on("status.update", async ({ statuses }) => {
-                for (const status of statuses) {
-                    await razor.readMessages([
-                        { remoteJid: status.id, id: status.statuses[0].id }
-                    ]);
-
-                    if (getConfig().autoreactstatus) {
-                        await razor.sendMessage(status.id, {
-                            react: {
-                                text: "👀",
-                                key: {
-                                    id: status.statuses[0].id,
-                                    remoteJid: status.id
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-        }
-
-        // 💾 Save credentials
-        razor.ev.on("creds.update", saveCreds);
-
-        // 🌐 Always online
-        if (getConfig().alwaysOnline) {
-            setInterval(() => razor.sendPresenceUpdate("available"), 60000);
-        }
-
-        // 🔄 Auto-update from GitHub
-        setInterval(autoUpdate, 300000); // every 5 minutes
-    }
+        if (config.autobio) {
+            await socket.updateProfileStatus(
+                `🤖 Razor XMD Lite active as of ${new Date().toLocaleString()}`
 );
+}
+
+        const commandPath = path.join(__dirname, "commands", `${cmd}.js`);
+        if (fs.existsSync(commandPath)) {
+            const command = require(commandPath);
+            await command.execute(socket, msg, args);
+}
+});
+
+    socket.ev.on("group-participants.update", async update => {
+        const { id, participants, action} = update;
+        if (action === "add" && config.welcome) {
+            for (const participant of participants) {
+                await socket.sendMessage(id, {
+                    text: `👋 Welcome @${
+                        participant.split("@")[0]
+} to the group! \n> Powered By *Razor XMD Lite*`,
+                    mentions: [participant]
+});
+}
+}
+});
+
+    if (config.autostatusview) {
+        socket.ev.on("status.update", async ({ statuses}) => {
+            for (const status of statuses) {
+                await socket.readMessages([
+                    { remoteJid: status.id, id: status.statuses[0].id}
+                ]);
+
+                if (config.autoreactstatus) {
+                    await socket.sendMessage(status.id, {
+                        react: { text: "👀",
+                            key: {
+                                id: status.statuses[0].id,
+                                remoteJid: status.id
+}
+}
+});
+}
+}
+});
+}
+
+    socket.ev.on("creds.update", saveCreds);
+
+    if (config.alwaysOnline) {
+        setInterval(() => socket.sendPresenceUpdate("available"), 60000);
+}
+
+    setInterval(autoUpdate, 300000); // every 5 minutes
+});
